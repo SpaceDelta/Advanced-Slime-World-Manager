@@ -12,17 +12,22 @@
         <module>slimeworldmanager-plugin</module>
         <module>slimeworldmanager-importer</module>
         <module>slimeworldmanager-classmodifier</module>
-        <module>slimeworldmanager-nms-v116-0-1</module>
+        <!-- <module>slimeworldmanager-nms-v116-0-1</module>
         <module>slimeworldmanager-nms-v116-2-3</module>
         <module>slimeworldmanager-nms-v116-4-5</module>
-        <module>slimeworldmanager-nms-v117-0</module>
+        <module>slimeworldmanager-nms-v117-0</module> -->
         <module>slimeworldmanager-nms-v117-1</module>
     </modules>
 
     <repositories>
+        <!--
         <repository>
             <id>private-snapshots</id>
             <url>https://repo.rapture.pw/repository/private-snapshots/</url>
+        </repository> -->
+        <repository>
+            <id>spacedelta-maven</id>
+            <url>http://142.202.222.242:8082/artifactory/everything</url>
         </repository>
         <repository>
             <id>spigot-repo</id>

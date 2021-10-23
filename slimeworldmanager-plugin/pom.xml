@@ -42,6 +42,7 @@
             <artifactId>slimeworldmanager-nms-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!--
         <dependency>
             <groupId>com.grinderwolf</groupId>
             <artifactId>slimeworldmanager-nms-v116-0-1</artifactId>
@@ -61,7 +62,7 @@
             <groupId>com.grinderwolf</groupId>
             <artifactId>slimeworldmanager-nms-v117-0</artifactId>
             <version>${project.version}</version>
-        </dependency>
+        </dependency> -->
         <dependency>
             <groupId>com.grinderwolf</groupId>
             <artifactId>slimeworldmanager-nms-v117-1</artifactId>
