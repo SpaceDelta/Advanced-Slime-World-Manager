@@ -161,7 +161,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin {
                         w.getLoader().saveWorld(
                                 w.getName(),
                                 w.serialize(),
-                                w.isLocked()
+                                false && w.isLocked() // SpaceDelta :: don't lock worlds on restart
                         );
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -279,6 +279,7 @@ public class SWMPlugin extends JavaPlugin implements SlimePlugin {
                 loader.unlockWorld(worldName);
             }
 
+            System.out.println("world in use");
             throw ex;
         }
 

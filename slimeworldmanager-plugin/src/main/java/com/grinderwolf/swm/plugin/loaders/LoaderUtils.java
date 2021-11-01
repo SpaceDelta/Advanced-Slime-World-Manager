@@ -49,9 +49,9 @@ public class LoaderUtils {
             }
         }
 
+                /* SpaceDelta :: reduce jar size
         // MongoDB loader
         DatasourcesConfig.MongoDBConfig mongoConfig = config.getMongoDbConfig();
-
         if (mongoConfig.isEnabled()) {
             try {
                 registerLoader("mongodb", new MongoLoader(mongoConfig));
@@ -60,7 +60,8 @@ public class LoaderUtils {
                 ex.printStackTrace();
             }
         }
-
+         */
+        /*
         DatasourcesConfig.RedisConfig redisConfig = config.getRedisConfig();
         if(redisConfig.isEnabled()){
           try{
@@ -70,6 +71,7 @@ public class LoaderUtils {
             ex.printStackTrace();
           }
         }
+         */
     }
 
     public static List<String> getAvailableLoadersNames() {

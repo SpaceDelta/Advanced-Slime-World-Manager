@@ -230,6 +230,7 @@ public class MysqlLoader extends UpdatableLoader {
 
     @Override
     public void unlockWorld(String worldName) throws IOException, UnknownWorldException {
+        Logging.info("Unlocking " + worldName);
         ScheduledFuture future = lockedWorlds.remove(worldName);
 
         if (future != null) {
