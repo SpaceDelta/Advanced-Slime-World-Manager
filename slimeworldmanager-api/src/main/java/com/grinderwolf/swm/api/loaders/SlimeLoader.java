@@ -2,6 +2,7 @@ package com.grinderwolf.swm.api.loaders;
 
 import com.grinderwolf.swm.api.exceptions.UnknownWorldException;
 import com.grinderwolf.swm.api.exceptions.WorldInUseException;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
@@ -74,6 +75,9 @@ public interface SlimeLoader {
      * @throws IOException           if the world could not be obtained.
      */
     boolean isWorldLocked(String worldName) throws UnknownWorldException, IOException;
+
+    @Nullable
+    String getWorldLockServer(String worldName) throws UnknownWorldException, IOException;
 
     /**
      * Deletes a world from the data source.

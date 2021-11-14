@@ -9,6 +9,8 @@ import com.grinderwolf.swm.plugin.loaders.UpdatableLoader;
 import com.grinderwolf.swm.plugin.log.Logging;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import net.spacedelta.lib.Library;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -44,9 +46,9 @@ public class MysqlLoader extends UpdatableLoader {
     // World handling queries
     private static final String CREATE_WORLDS_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS `worlds` (`id` INT NOT NULL AUTO_INCREMENT, " +
             "`name` VARCHAR(255) UNIQUE, `world` MEDIUMBLOB, `locked` BIGINT, PRIMARY KEY(id));";
-    private static final String SELECT_WORLD_QUERY = "SELECT `world`, `locked` FROM `worlds` WHERE `name` = ?;";
+    private static final String SELECT_WORLD_QUERY = "SELECT `world`, `locked`, `server` FROM `worlds` WHERE `name` = ?;";
     private static final String UPDATE_WORLD_QUERY = "INSERT INTO `worlds` (`name`, `world`, `locked`) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE `world` = ?;";
-    private static final String UPDATE_LOCK_QUERY = "UPDATE `worlds` SET `locked` = ? WHERE `name` = ?;";
+    private static final String UPDATE_LOCK_QUERY = "UPDATE `worlds` SET `locked` = ?, `server` = ? WHERE `name` = ?;";
     private static final String DELETE_WORLD_QUERY = "DELETE FROM `worlds` WHERE `name` = ?;";
     private static final String LIST_WORLDS_QUERY = "SELECT `name` FROM `worlds`;";
 
@@ -154,7 +156,8 @@ public class MysqlLoader extends UpdatableLoader {
                     throw new WorldInUseException(worldName);
                 }
 
-                updateLock(worldName, true);
+                var serverId = Library.get().getNetworkManager().getThisServer().getId();
+                updateLock(worldName, serverId, true);
             }
 
             return set.getBytes("world");
@@ -163,11 +166,12 @@ public class MysqlLoader extends UpdatableLoader {
         }
     }
 
-    private void updateLock(String worldName, boolean forceSchedule) {
+    private void updateLock(String worldName, String serverId, boolean forceSchedule) {
         try (Connection con = source.getConnection();
              PreparedStatement statement = con.prepareStatement(UPDATE_LOCK_QUERY)) {
             statement.setLong(1, System.currentTimeMillis());
-            statement.setString(2, worldName);
+            statement.setString(2, serverId);
+            statement.setString(3, worldName);
 
             statement.executeUpdate();
         } catch (SQLException ex) {
@@ -176,7 +180,7 @@ public class MysqlLoader extends UpdatableLoader {
         }
 
         if (forceSchedule || lockedWorlds.containsKey(worldName)) { // Only schedule another update if the world is still on the map
-            lockedWorlds.put(worldName, SERVICE.schedule(() -> updateLock(worldName, false), LoaderUtils.LOCK_INTERVAL, TimeUnit.MILLISECONDS));
+            lockedWorlds.put(worldName, SERVICE.schedule(() -> updateLock(worldName, serverId, false), LoaderUtils.LOCK_INTERVAL, TimeUnit.MILLISECONDS));
         }
     }
 
@@ -221,7 +225,7 @@ public class MysqlLoader extends UpdatableLoader {
             statement.executeUpdate();
 
             if (lock) {
-                updateLock(worldName, true);
+                updateLock(worldName, null, true);
             }
         } catch (SQLException ex) {
             throw new IOException(ex);
@@ -240,7 +244,8 @@ public class MysqlLoader extends UpdatableLoader {
         try (Connection con = source.getConnection();
              PreparedStatement statement = con.prepareStatement(UPDATE_LOCK_QUERY)) {
             statement.setLong(1, 0L);
-            statement.setString(2, worldName);
+            statement.setString(2, null);
+            statement.setString(3, worldName);
 
             if (statement.executeUpdate() == 0) {
                 throw new UnknownWorldException(worldName);
@@ -266,6 +271,28 @@ public class MysqlLoader extends UpdatableLoader {
             }
 
             return System.currentTimeMillis() - set.getLong("locked") <= LoaderUtils.MAX_LOCK_TIME;
+        } catch (SQLException ex) {
+            throw new IOException(ex);
+        }
+    }
+
+    @Override
+    @Nullable
+    public String getWorldLockServer(String worldName) throws UnknownWorldException, IOException {
+        try (Connection con = source.getConnection();
+             PreparedStatement statement = con.prepareStatement(SELECT_WORLD_QUERY)) {
+            statement.setString(1, worldName);
+            ResultSet set = statement.executeQuery();
+
+            if (!set.next()) {
+                throw new UnknownWorldException(worldName);
+            }
+
+            if (System.currentTimeMillis() - set.getLong("locked") <= LoaderUtils.MAX_LOCK_TIME) {
+                return set.getString("server");
+            }
+
+            return null;
         } catch (SQLException ex) {
             throw new IOException(ex);
         }

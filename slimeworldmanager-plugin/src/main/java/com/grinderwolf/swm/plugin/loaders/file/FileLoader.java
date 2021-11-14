@@ -6,6 +6,7 @@ import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.plugin.log.Logging;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -147,6 +148,11 @@ public class FileLoader implements SlimeLoader {
             return true;
         }
         return false;
+    }
+
+    @Nullable
+    public String getWorldLockServer(String worldName) throws UnknownWorldException, IOException {
+        throw new UnsupportedOperationException();
     }
 
     @Override

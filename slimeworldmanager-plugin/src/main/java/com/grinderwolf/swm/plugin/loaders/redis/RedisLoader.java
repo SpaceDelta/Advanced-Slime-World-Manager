@@ -7,6 +7,8 @@ import com.grinderwolf.swm.plugin.config.DatasourcesConfig;
 import com.grinderwolf.swm.plugin.loaders.redis.util.StringByteCodec;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.sync.RedisCommands;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -77,6 +79,11 @@ public class RedisLoader implements SlimeLoader {
             throw new UnknownWorldException(name);
         }
         return response[0] == TRUE;
+    }
+
+    @Nullable
+    public String getWorldLockServer(String worldName) throws UnknownWorldException, IOException {
+        throw new UnsupportedOperationException();
     }
 
     @Override

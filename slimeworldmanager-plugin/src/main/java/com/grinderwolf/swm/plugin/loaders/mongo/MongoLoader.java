@@ -23,6 +23,7 @@ import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -253,6 +254,11 @@ public class MongoLoader extends UpdatableLoader {
         } catch (MongoException ex) {
             throw new IOException(ex);
         }
+    }
+
+    @Nullable
+    public String getWorldLockServer(String worldName) throws UnknownWorldException, IOException {
+        throw new UnsupportedOperationException();
     }
 
     @Override
