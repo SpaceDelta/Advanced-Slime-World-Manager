@@ -48,7 +48,9 @@ import net.minecraft.world.level.material.FluidTypes;
 import net.minecraft.world.level.storage.IWorldDataServer;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftHumanEntity;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.world.WorldSaveEvent;
 
 import java.io.IOException;
@@ -340,20 +342,14 @@ public class CustomWorldServer extends WorldServer {
 
     @Override
     public void unloadChunk(Chunk chunk) {
-        Iterator<TileEntity> tileEntities = chunk.getTileEntities().values().iterator();
-        do {
-            TileEntity tileentity;
-            do {
-                if (!tileEntities.hasNext()) {
-                    chunk.C();
-                    return;
+        for (var tileentity : chunk.getTileEntities().values()) {
+            if (tileentity instanceof IInventory container) {
+                for (HumanEntity humanEntity : Lists.newArrayList(container.getViewers())) {
+                    ((CraftHumanEntity) humanEntity).getHandle().closeUnloadedInventory(InventoryCloseEvent.Reason.UNLOADED);
                 }
-                tileentity = tileEntities.next();
-            } while (!(tileentity instanceof IInventory));
 
-            for (HumanEntity h : Lists.newArrayList(((IInventory) tileentity).getViewers())) {
-                h.closeInventory();
+                container.getViewers().clear();
             }
-        } while (true);
+        }
     }
 }
