@@ -17,7 +17,6 @@ import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.core.IRegistry;
-import net.minecraft.core.SectionPosition;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.resources.MinecraftKey;
@@ -29,9 +28,10 @@ import net.minecraft.util.IProgressUpdate;
 import net.minecraft.util.Unit;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.IInventory;
+import net.minecraft.world.entity.EntityInsentient;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.ai.goal.PathfinderGoalSelector;
 import net.minecraft.world.level.ChunkCoordIntPair;
-import net.minecraft.world.level.EnumSkyBlock;
 import net.minecraft.world.level.World;
 import net.minecraft.world.level.biome.BiomeBase;
 import net.minecraft.world.level.biome.WorldChunkManager;
@@ -42,18 +42,17 @@ import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.dimension.DimensionManager;
 import net.minecraft.world.level.dimension.WorldDimension;
 import net.minecraft.world.level.levelgen.HeightMap;
-import net.minecraft.world.level.lighting.LightEngine;
 import net.minecraft.world.level.material.FluidType;
 import net.minecraft.world.level.material.FluidTypes;
 import net.minecraft.world.level.storage.IWorldDataServer;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftHumanEntity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.world.WorldSaveEvent;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -72,6 +71,19 @@ public class CustomWorldServer extends WorldServer {
     private final CraftSlimeWorld slimeWorld;
     private final Object saveLock = new Object();
     private final WorldChunkManager defaultBiomeSource;
+
+    // SpaceDelta
+    private static Field SELECTOR_FIELD;
+    static {
+        try {
+            final Field field = PathfinderGoalSelector.class.getDeclaredField("d");
+            field.setAccessible(true);
+            SELECTOR_FIELD = field;
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+            SELECTOR_FIELD = null;
+        }
+    }
 
     @Getter
     @Setter
@@ -297,7 +309,16 @@ public class CustomWorldServer extends WorldServer {
                                 .stream()
                                 .map((tag) -> (NBTTagCompound) Converter.convertTag(tag))
                                 .collect(Collectors.toList()),
-                        this));
+                        this)
+                .peek(entity -> { // SpaceDelta
+                    if (entity instanceof EntityInsentient insentient) {
+                        try {
+                            SELECTOR_FIELD.set(insentient.bP, new HashSet<>()); // goalSelector
+                            SELECTOR_FIELD.set(insentient.bQ, new HashSet<>()); // targetSelector
+                        } catch (IllegalAccessException ignored) {
+                        }
+                    }
+                }));
             }
         };
 
