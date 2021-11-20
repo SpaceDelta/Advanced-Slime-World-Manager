@@ -62,13 +62,20 @@ public class v1171SlimeNMS implements SlimeNMS {
     static {
         Path path;
 
-        try {
-            path = Files.createTempDirectory("swm-" + UUID.randomUUID().toString().substring(0, 5) + "-");
+        System.out.println("wtf");
+
+        // try {
+            // path = Files.createTempDirectory("swm-" + UUID.randomUUID().toString().substring(0, 5) + "-"); // SpaceDelta :: move to MC dir
+            final File directory = new File("swmtmp");
+            directory.mkdirs();
+            path = directory.toPath();
+            /*
         } catch (IOException ex) {
 //            LOGGER.log(Level.FATAL, "Failed to create temp directory", ex);
             path = null;
             System.exit(1);
         }
+             */
 
         UNIVERSE_DIR = path.toFile();
         CONVERTABLE = Convertable.a(path);
