@@ -57,6 +57,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -224,6 +225,19 @@ public class CustomWorldServer extends WorldServer {
         return new ProtoChunkExtension(chunk);
     }
 
+    private boolean isSectionEmptyAsync(ChunkSection section) {
+        AtomicBoolean empty = new AtomicBoolean(true);
+        section.getBlocks().forEachLocation((state, location) -> {
+            if(!empty.get()) return;
+
+            if(!state.isAir() || state.getFluid().isEmpty()) {
+                empty.set(false);
+            }
+        });
+
+        return empty.get();
+    }
+
     private Chunk createChunk(SlimeChunk chunk) {
         int x = chunk.getX();
         int z = chunk.getZ();
@@ -264,7 +278,9 @@ public class CustomWorldServer extends WorldServer {
 //                    lightEngine.a(EnumSkyBlock.a, SectionPosition.a(pos, sectionId), Converter.convertArray(slimeSection.getSkyLight()), true);
 //                }
 
-                section.recalcBlockCounts();
+                if(!isSectionEmptyAsync(section)) {
+                    section.recalcBlockCounts();
+                }
                 sections[sectionId] = section;
             }
         }
@@ -363,6 +379,26 @@ public class CustomWorldServer extends WorldServer {
 
     @Override
     public void unloadChunk(Chunk chunk) {
+        /*
+        Iterator<TileEntity> tileEntities = chunk.getTileEntities().values().iterator();
+        do {
+            TileEntity tileentity;
+            do {
+                if (!tileEntities.hasNext()) {
+//                    chunk.C();
+                    return;
+                }
+                tileentity = tileEntities.next();
+            } while (!(tileentity instanceof IInventory));
+
+            for (HumanEntity h : Lists.newArrayList(((IInventory) tileentity).getViewers())) {
+                ((CraftHumanEntity) h).getHandle().closeUnloadedInventory(InventoryCloseEvent.Reason.UNLOADED);
+            }
+            ((IInventory) tileentity).getViewers().clear();
+        } while (true);
+         */
+
+        // SD Changes
         for (var tileentity : chunk.getTileEntities().values()) {
             if (tileentity instanceof IInventory container) {
                 for (HumanEntity humanEntity : Lists.newArrayList(container.getViewers())) {
@@ -373,4 +409,5 @@ public class CustomWorldServer extends WorldServer {
             }
         }
     }
+
 }
